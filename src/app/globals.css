@@ -1,26 +1,210 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f7f9;
+  --foreground: #172026;
+  --surface: #ffffff;
+  --surface-muted: #f4f5f7;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --muted: #52525b;
+  --muted-soft: #71717a;
+  --strong: #18181b;
+  --brand: #047857;
+  --brand-strong: #065f46;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --background: #0f1411;
+  --foreground: #edf4ef;
+  --surface: #18211d;
+  --surface-muted: #202b26;
+  --border: #2f3d36;
+  --border-strong: #405149;
+  --muted: #c4cec8;
+  --muted-soft: #9ba8a1;
+  --strong: #f8faf9;
+  --brand: #34d399;
+  --brand-strong: #6ee7b7;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+input,
+select,
+textarea {
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted-soft);
+}
+
+:root[data-theme="dark"] .bg-white {
+  background-color: var(--surface);
+}
+
+:root[data-theme="dark"] .theme-icon-moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-icon-sun {
+  display: block;
+}
+
+:root[data-theme="dark"] .bg-zinc-50,
+:root[data-theme="dark"] .bg-zinc-100 {
+  background-color: var(--surface-muted);
+}
+
+:root[data-theme="dark"] .bg-zinc-200 {
+  background-color: #334139;
+}
+
+:root[data-theme="dark"] .bg-zinc-900 {
+  background-color: #d9efe5;
+  color: #0f1411;
+}
+
+:root[data-theme="dark"] .bg-emerald-700 {
+  background-color: #059669;
+}
+
+:root[data-theme="dark"] .hover\:bg-zinc-50:hover {
+  background-color: #24322c;
+}
+
+:root[data-theme="dark"] .hover\:bg-emerald-800:hover {
+  background-color: #047857;
+}
+
+:root[data-theme="dark"] .border-zinc-200,
+:root[data-theme="dark"] .divide-zinc-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .border-zinc-300 {
+  border-color: var(--border-strong);
+}
+
+:root[data-theme="dark"] .text-zinc-900,
+:root[data-theme="dark"] .text-black {
+  color: var(--strong);
+}
+
+:root[data-theme="dark"] .text-zinc-600,
+:root[data-theme="dark"] .text-zinc-700,
+:root[data-theme="dark"] .text-zinc-500 {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .text-zinc-400 {
+  color: var(--muted-soft);
+}
+
+:root[data-theme="dark"] .text-emerald-700,
+:root[data-theme="dark"] .text-emerald-800 {
+  color: var(--brand-strong);
+}
+
+:root[data-theme="dark"] .ring-zinc-200,
+:root[data-theme="dark"] .ring-zinc-300 {
+  --tw-ring-color: var(--border-strong);
+}
+
+:root[data-theme="dark"] .shadow-sm,
+:root[data-theme="dark"] .shadow-lg {
+  --tw-shadow-color: rgb(0 0 0 / 0.35);
+}
+
+:root[data-theme="dark"] .disabled\:bg-zinc-100:disabled {
+  background-color: #26342e;
+}
+
+:root[data-theme="dark"] .bg-sky-100 {
+  background-color: #0c3446;
+}
+
+:root[data-theme="dark"] .text-sky-800 {
+  color: #bae6fd;
+}
+
+:root[data-theme="dark"] .ring-sky-200 {
+  --tw-ring-color: #075985;
+}
+
+:root[data-theme="dark"] .bg-amber-100 {
+  background-color: #3f2e10;
+}
+
+:root[data-theme="dark"] .text-amber-800 {
+  color: #fde68a;
+}
+
+:root[data-theme="dark"] .ring-amber-200 {
+  --tw-ring-color: #92400e;
+}
+
+:root[data-theme="dark"] .bg-emerald-100 {
+  background-color: #10382b;
+}
+
+:root[data-theme="dark"] .text-emerald-800 {
+  color: #a7f3d0;
+}
+
+:root[data-theme="dark"] .ring-emerald-200 {
+  --tw-ring-color: #047857;
+}
+
+:root[data-theme="dark"] .bg-teal-100 {
+  background-color: #123a3a;
+}
+
+:root[data-theme="dark"] .text-teal-800 {
+  color: #99f6e4;
+}
+
+:root[data-theme="dark"] .ring-teal-200 {
+  --tw-ring-color: #0f766e;
+}
+
+:root[data-theme="dark"] .bg-indigo-100 {
+  background-color: #25254e;
+}
+
+:root[data-theme="dark"] .text-indigo-800 {
+  color: #c7d2fe;
+}
+
+:root[data-theme="dark"] .ring-indigo-200 {
+  --tw-ring-color: #4f46e5;
+}
+
+:root[data-theme="dark"] .bg-rose-100,
+:root[data-theme="dark"] .bg-rose-50 {
+  background-color: #4a1624;
+}
+
+:root[data-theme="dark"] .text-rose-700,
+:root[data-theme="dark"] .text-rose-800 {
+  color: #fecdd3;
+}
+
+:root[data-theme="dark"] .ring-rose-200 {
+  --tw-ring-color: #be123c;
 }
