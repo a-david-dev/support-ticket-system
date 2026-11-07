@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma, Role } from "@prisma/client";
+import { Prisma, Role, TicketStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -15,6 +15,8 @@ const registerSchema = z.object({
   email: z.string().email().toLowerCase(),
   password: z.string().min(8),
 });
+
+const boardStatusSchema = z.nativeEnum(TicketStatus);
 
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "");
@@ -128,6 +130,34 @@ export async function updateTicketAction(ticketId: string, formData: FormData) {
   revalidatePath("/");
   revalidatePath(`/tickets/${ticketId}`);
   redirect(`/tickets/${ticketId}?saved=1`);
+}
+
+export async function updateTicketStatusAction(ticketId: string, status: TicketStatus) {
+  const user = await requireUser();
+  const parsedStatus = boardStatusSchema.safeParse(status);
+  if (!parsedStatus.success) return;
+
+  const prisma = getPrisma();
+  const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+  if (!ticket || !canUpdateTicket(user, ticket) || ticket.status === parsedStatus.data) return;
+
+  await prisma.ticket.update({
+    where: { id: ticketId },
+    data: {
+      status: parsedStatus.data,
+      activity: {
+        create: {
+          actorId: user.id,
+          type: "STATUS_CHANGED",
+          message: `Estado actualizado a ${parsedStatus.data}.`,
+        },
+      },
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/board");
+  revalidatePath(`/tickets/${ticketId}`);
 }
 
 export async function addCommentAction(ticketId: string, formData: FormData) {
