@@ -100,8 +100,8 @@ export default async function DashboardPage({
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[1fr_360px]">
-        <section className="space-y-6">
+      <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="min-w-0 space-y-6">
           {params.error === "ticket" ? (
             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
               No se pudo crear el ticket. Usa titulo de al menos 3 caracteres, descripcion de al menos 5 y categoria de al menos 2.
