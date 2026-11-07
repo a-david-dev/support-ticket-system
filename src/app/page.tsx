@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Priority, TicketStatus } from "@prisma/client";
-import { BarChart3, CheckCircle2, Clock3, LifeBuoy, LogOut, PlusCircle, Search, ShieldCheck } from "lucide-react";
-import { createTicketAction, logoutAction } from "@/app/actions";
+import { BarChart3, CheckCircle2, ChevronDown, Clock3, LifeBuoy, LogOut, Search, ShieldCheck } from "lucide-react";
+import { logoutAction } from "@/app/actions";
+import { NewTicketPanel } from "@/app/new-ticket-panel";
 import { requireUser } from "@/lib/auth";
 import { canManageQueue, visibleTicketWhere } from "@/lib/permissions";
 import { getPrisma } from "@/lib/prisma";
@@ -9,12 +10,12 @@ import { priorityLabels, priorityStyles, statusLabels, statusStyles } from "@/li
 
 function StatCard({ label, value, icon: Icon }: { label: string; value: number; icon: typeof BarChart3 }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-zinc-500">{label}</p>
-        <Icon className="text-emerald-700" size={20} />
-      </div>
-      <p className="mt-3 text-3xl font-semibold">{value}</p>
+    <div className="flex min-w-40 flex-1 items-center gap-2 border-b-2 border-emerald-600 px-3 py-1.5">
+      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-emerald-50 text-emerald-700">
+        <Icon size={15} />
+      </span>
+      <p className="whitespace-nowrap text-xs font-medium text-zinc-500">{label}</p>
+      <p className="ml-auto text-lg font-semibold tabular-nums text-zinc-900">{value}</p>
     </div>
   );
 }
@@ -80,17 +81,18 @@ export default async function DashboardPage({
             </div>
             <div>
               <h1 className="text-xl font-semibold">Mesa de Ayuda TI</h1>
-              <p className="text-sm text-zinc-500">
-                {user.name} · {user.role === "ADMIN" ? "Administrador" : user.role === "TECHNICIAN" ? "Tecnico" : "Usuario"}
-              </p>
+              <p className="text-sm text-zinc-500">{user.name}</p>
             </div>
           </div>
-          <form action={logoutAction}>
-            <button type="submit" className="inline-flex h-10 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm font-medium hover:bg-zinc-50">
-              <LogOut size={16} />
-              Salir
-            </button>
-          </form>
+          <div className="flex items-center gap-2">
+            <NewTicketPanel />
+            <form action={logoutAction}>
+              <button type="submit" className="inline-flex h-10 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm font-medium hover:bg-zinc-50">
+                <LogOut size={16} />
+                Salir
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 
@@ -106,41 +108,49 @@ export default async function DashboardPage({
               Ticket eliminado correctamente.
             </div>
           ) : null}
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <section aria-label="Resumen de tickets" className="flex gap-3 overflow-x-auto">
             <StatCard label="Abiertos" value={metric("OPEN")} icon={LifeBuoy} />
             <StatCard label="En proceso" value={metric("IN_PROGRESS")} icon={Clock3} />
             <StatCard label="Resueltos" value={metric("RESOLVED")} icon={CheckCircle2} />
             <StatCard label="Total visible" value={total} icon={BarChart3} />
-          </div>
+          </section>
 
           <div className="rounded-lg border border-zinc-200 bg-white shadow-sm">
-            <form className="grid gap-3 border-b border-zinc-200 p-4 md:grid-cols-[1fr_150px_150px_auto]">
-              <label className="relative">
+            <form className="flex flex-wrap items-center gap-2 border-b border-zinc-200 p-3">
+              <label className="relative w-full shrink-0 sm:w-80">
                 <Search className="absolute left-3 top-3 text-zinc-400" size={17} />
                 <input
                   name="q"
                   defaultValue={params.q}
-                  placeholder="Buscar por titulo, categoria o descripcion"
+                  placeholder="Buscar tickets"
                   className="h-11 w-full rounded-md border border-zinc-300 pl-9 pr-3 text-sm"
                 />
               </label>
-              <select name="status" aria-label="Filtrar por estado" defaultValue={params.status ?? ""} className="h-11 rounded-md border border-zinc-300 px-3 text-sm">
-                <option value="">Todos los estados</option>
-                {Object.entries(statusLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <select name="priority" aria-label="Filtrar por prioridad" defaultValue={params.priority ?? ""} className="h-11 rounded-md border border-zinc-300 px-3 text-sm">
-                <option value="">Todas las prioridades</option>
-                {Object.entries(priorityLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className="h-11 rounded-md bg-zinc-900 px-4 text-sm font-semibold text-white">Filtrar</button>
+              <div className="relative">
+                <select name="status" aria-label="Filtrar por estado" defaultValue={params.status ?? ""} className="h-10 w-44 appearance-none rounded-full bg-zinc-100 pl-4 pr-10 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 outline-none transition hover:bg-zinc-200 focus:ring-2 focus:ring-emerald-600">
+                  <option value="">Estado · Todos</option>
+                  {Object.entries(statusLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      Estado · {label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+              </div>
+              <div className="relative">
+                <select name="priority" aria-label="Filtrar por prioridad" defaultValue={params.priority ?? ""} className="h-10 w-44 appearance-none rounded-full bg-zinc-100 pl-4 pr-10 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 outline-none transition hover:bg-zinc-200 focus:ring-2 focus:ring-emerald-600">
+                  <option value="">Prioridad · Todas</option>
+                  {Object.entries(priorityLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      Prioridad · {label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+              </div>
+              <button type="submit" aria-label="Aplicar filtros" className="ml-auto grid size-10 place-items-center rounded-full bg-zinc-900 text-white transition hover:bg-zinc-700">
+                <Search size={17} />
+              </button>
             </form>
 
             <div className="overflow-x-auto">
@@ -195,29 +205,7 @@ export default async function DashboardPage({
           </div>
         </section>
 
-        <aside className="space-y-6">
-          <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <PlusCircle size={19} className="text-emerald-700" />
-              <h2 className="font-semibold">Nuevo ticket</h2>
-            </div>
-            <form action={createTicketAction} className="space-y-4">
-              <input name="title" minLength={3} placeholder="Ej. No enciende mi monitor" className="h-11 w-full rounded-md border border-zinc-300 px-3 text-sm" required />
-              <textarea name="description" minLength={5} placeholder="Describe el problema, pasos intentados y urgencia." rows={5} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required />
-              <div className="grid grid-cols-2 gap-3">
-                <input name="category" minLength={2} placeholder="Categoria" className="h-11 rounded-md border border-zinc-300 px-3 text-sm" required />
-                <select name="priority" aria-label="Prioridad del ticket" defaultValue="MEDIUM" className="h-11 rounded-md border border-zinc-300 px-3 text-sm">
-                  <option value="LOW">Baja</option>
-                  <option value="MEDIUM">Media</option>
-                  <option value="HIGH">Alta</option>
-                </select>
-              </div>
-              <button type="submit" className="h-11 w-full rounded-md bg-emerald-700 px-4 text-sm font-semibold text-white hover:bg-emerald-800">
-                Crear ticket
-              </button>
-            </form>
-          </section>
-
+        <aside>
           <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
             <div className="mb-3 flex items-center gap-2">
               <ShieldCheck size={19} className="text-emerald-700" />
