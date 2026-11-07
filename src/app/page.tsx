@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Priority, TicketStatus } from "@prisma/client";
-import { BarChart3, CheckCircle2, ChevronDown, Clock3, LifeBuoy, LogOut, Search, ShieldCheck } from "lucide-react";
+import { BarChart3, CheckCircle2, ChevronDown, Clock3, Columns3, LifeBuoy, LogOut, Search, ShieldCheck } from "lucide-react";
 import { logoutAction } from "@/app/actions";
 import { NewTicketPanel } from "@/app/new-ticket-panel";
 import { requireUser } from "@/lib/auth";
@@ -85,6 +85,10 @@ export default async function DashboardPage({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/board" className="inline-flex h-10 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm font-medium hover:bg-zinc-50">
+              <Columns3 size={16} />
+              Tablero
+            </Link>
             <NewTicketPanel />
             <form action={logoutAction}>
               <button type="submit" className="inline-flex h-10 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm font-medium hover:bg-zinc-50">
