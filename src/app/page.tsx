@@ -76,6 +76,16 @@ export default async function DashboardPage({
   const metric = (status: TicketStatus) => metrics.find((item) => item.status === status)?._count ?? 0;
   const totalPages = Math.max(Math.ceil(total / pageSize), 1);
 
+  // Construye el href de la vista (Activos / Cerrados) conservando los filtros activos.
+  const viewHref = (status?: string) => {
+    const search = new URLSearchParams();
+    if (status) search.set("status", status);
+    if (params.priority) search.set("priority", params.priority);
+    if (params.q) search.set("q", params.q);
+    const query = search.toString();
+    return query ? `/?${query}` : "/";
+  };
+
   return (
     <main className="min-h-screen">
       <header className="border-b border-zinc-200 bg-white">
@@ -126,6 +136,22 @@ export default async function DashboardPage({
 
           <div className="rounded-lg border border-zinc-200 bg-white shadow-sm">
             <form className="flex flex-wrap items-center gap-2 border-b border-zinc-200 p-3">
+              <div role="group" aria-label="Vista de tickets" className="flex shrink-0 rounded-full bg-zinc-100 p-1 ring-1 ring-zinc-200">
+                <Link
+                  href={viewHref()}
+                  aria-current={params.status ? undefined : "true"}
+                  className={`inline-flex h-8 items-center rounded-full px-4 text-sm font-medium transition hover:bg-zinc-200 ${params.status ? "text-zinc-600" : "bg-zinc-900 text-white"}`}
+                >
+                  Activos
+                </Link>
+                <Link
+                  href={viewHref(TicketStatus.CLOSED)}
+                  aria-current={params.status === TicketStatus.CLOSED ? "true" : undefined}
+                  className={`inline-flex h-8 items-center rounded-full px-4 text-sm font-medium transition hover:bg-zinc-200 ${params.status === TicketStatus.CLOSED ? "bg-zinc-900 text-white" : "text-zinc-600"}`}
+                >
+                  Cerrados
+                </Link>
+              </div>
               <label className="relative w-full shrink-0 sm:w-80">
                 <Search className="absolute left-3 top-3 text-zinc-400" size={17} />
                 <input
@@ -136,7 +162,7 @@ export default async function DashboardPage({
                 />
               </label>
               <div className="relative">
-                <select name="status" aria-label="Filtrar por estado" defaultValue={params.status ?? ""} className="h-10 w-44 appearance-none rounded-full bg-zinc-100 pl-4 pr-10 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 outline-none transition hover:bg-zinc-200 focus:ring-2 focus:ring-emerald-600">
+                <select key={params.status ?? ""} name="status" aria-label="Filtrar por estado" defaultValue={params.status ?? ""} className="h-10 w-44 appearance-none rounded-full bg-zinc-100 pl-4 pr-10 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 outline-none transition hover:bg-zinc-200 focus:ring-2 focus:ring-emerald-600">
                   <option value="">Estado · Todos</option>
                   {Object.entries(statusLabels).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -147,7 +173,7 @@ export default async function DashboardPage({
                 <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
               </div>
               <div className="relative">
-                <select name="priority" aria-label="Filtrar por prioridad" defaultValue={params.priority ?? ""} className="h-10 w-44 appearance-none rounded-full bg-zinc-100 pl-4 pr-10 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 outline-none transition hover:bg-zinc-200 focus:ring-2 focus:ring-emerald-600">
+                <select key={params.priority ?? ""} name="priority" aria-label="Filtrar por prioridad" defaultValue={params.priority ?? ""} className="h-10 w-44 appearance-none rounded-full bg-zinc-100 pl-4 pr-10 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 outline-none transition hover:bg-zinc-200 focus:ring-2 focus:ring-emerald-600">
                   <option value="">Prioridad · Todas</option>
                   {Object.entries(priorityLabels).map(([value, label]) => (
                     <option key={value} value={value}>

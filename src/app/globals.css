@@ -165,6 +165,10 @@ textarea::placeholder {
   background-color: #24322c;
 }
 
+:root[data-theme="dark"] .hover\:bg-zinc-200:hover {
+  background-color: #334139;
+}
+
 :root[data-theme="dark"] .hover\:bg-emerald-800:hover {
   background-color: #047857;
 }
