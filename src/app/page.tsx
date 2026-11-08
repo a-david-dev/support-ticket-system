@@ -5,7 +5,7 @@ import { logoutAction } from "@/app/actions";
 import { NewTicketPanel } from "@/app/new-ticket-panel";
 import { AssigneeCombobox } from "@/app/assignee-combobox";
 import { requireUser } from "@/lib/auth";
-import { canManageQueue, visibleTicketWhere } from "@/lib/permissions";
+import { canEditAssignee, canManageQueue, visibleTicketWhere } from "@/lib/permissions";
 import { getPrisma } from "@/lib/prisma";
 import { priorityLabels, priorityStyles, statusLabels, statusStyles } from "@/lib/ticket-labels";
 
@@ -217,7 +217,11 @@ export default async function DashboardPage({
                       </td>
                       <td className="px-4 py-4 text-zinc-600">{ticket.createdBy.name}</td>
                       <td className="px-4 py-4 text-zinc-600">
-                        {canAssign ? <AssigneeCombobox ticketId={ticket.id} initialAssigneeId={ticket.assignedToId} users={assignableUsers} /> : ticket.assignedTo?.name ?? "Sin asignar"}
+                        {canEditAssignee(user, ticket) ? (
+                          <AssigneeCombobox ticketId={ticket.id} initialAssigneeId={ticket.assignedToId} users={assignableUsers} />
+                        ) : (
+                          ticket.assignedTo?.name ?? "Sin asignar"
+                        )}
                       </td>
                       <td className="px-4 py-4 font-mono text-xs text-zinc-500">{ticket.updatedAt.toLocaleDateString("es-MX")}</td>
                     </tr>

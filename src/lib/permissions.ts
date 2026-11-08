@@ -1,8 +1,13 @@
-import { Role, Ticket } from "@prisma/client";
+import { Role, Ticket, TicketStatus } from "@prisma/client";
 import { SessionUser } from "@/lib/auth";
 
 export function canManageQueue(user: SessionUser) {
   return user.role === Role.ADMIN || user.role === Role.TECHNICIAN;
+}
+
+// El responsable de un ticket cerrado queda fijo; ya no puede reasignarse.
+export function canEditAssignee(user: SessionUser, ticket: Pick<Ticket, "status">) {
+  return canManageQueue(user) && ticket.status !== TicketStatus.CLOSED;
 }
 
 export function canUpdateTicket(user: SessionUser, ticket: Pick<Ticket, "createdById" | "assignedToId">) {

@@ -33,6 +33,7 @@ Proyecto full-stack para el portafolio de Ariel David Hernandez Padilla. Conecta
 - Roles `USER`, `TECHNICIAN` y `ADMIN`
 - CRUD de tickets: crear, listar, editar, eliminar y consultar detalle
 - Estados: abierto, en proceso, resuelto y cerrado
+- El responsable de un ticket cerrado queda fijo: la reasignacion se bloquea en la tabla y en el detalle, y se valida tambien en el servidor
 - Prioridades: baja, media y alta
 - Comentarios por ticket
 - Historial de actividad

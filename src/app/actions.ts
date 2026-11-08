@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSession, destroySession, requireUser, validateCredentials } from "@/lib/auth";
-import { canDeleteTicket, canManageQueue, canUpdateTicket } from "@/lib/permissions";
+import { canDeleteTicket, canEditAssignee, canManageQueue, canUpdateTicket } from "@/lib/permissions";
 import { getPrisma } from "@/lib/prisma";
 import { ticketSchema, updateTicketSchema } from "@/lib/ticket-schemas";
 
@@ -103,7 +103,9 @@ export async function updateTicketAction(ticketId: string, formData: FormData) {
   const nextStatus = parsed.data.status;
   const nextPriority = parsed.data.priority;
   const assignedToId = parsed.data.assignedToId || null;
-  const canAssign = canManageQueue(user);
+  // En tickets cerrados (o sin permisos) el responsable se mantiene; el select
+  // deshabilitado no se envia en el formData, por eso se conserva el valor actual.
+  const canReassign = canEditAssignee(user, ticket);
 
   const updates: string[] = [];
   if (parsed.data.title !== ticket.title) updates.push("Titulo actualizado.");
@@ -111,7 +113,7 @@ export async function updateTicketAction(ticketId: string, formData: FormData) {
   if (parsed.data.category !== ticket.category) updates.push("Categoria actualizada.");
   if (nextStatus !== ticket.status) updates.push(`Estado actualizado a ${nextStatus}.`);
   if (nextPriority !== ticket.priority) updates.push(`Prioridad actualizada a ${nextPriority}.`);
-  if (canAssign && assignedToId !== ticket.assignedToId) updates.push("Asignacion de tecnico actualizada.");
+  if (canReassign && assignedToId !== ticket.assignedToId) updates.push("Asignacion de tecnico actualizada.");
 
   await prisma.ticket.update({
     where: { id: ticketId },
@@ -121,7 +123,7 @@ export async function updateTicketAction(ticketId: string, formData: FormData) {
       category: parsed.data.category,
       status: nextStatus,
       priority: nextPriority,
-      assignedToId: canAssign ? assignedToId : ticket.assignedToId,
+      assignedToId: canReassign ? assignedToId : ticket.assignedToId,
       activity: {
         create: updates.map((message) => ({
           actorId: user.id,
@@ -167,11 +169,15 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
 
 export async function updateTicketAssigneeAction(ticketId: string, assignedToId: string | null) {
   const user = await requireUser();
-  if (!canManageQueue(user)) return;
 
   const prisma = getPrisma();
   const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
   if (!ticket) return;
+
+  if (!canEditAssignee(user, ticket)) {
+    console.warn("[updateTicketAssigneeAction] reasignacion rechazada", { ticketId, ticketStatus: ticket.status, userRole: user.role });
+    return;
+  }
 
   const assignee = assignedToId ? await prisma.user.findUnique({ where: { id: assignedToId }, select: { id: true } }) : null;
   if (assignedToId && !assignee) return;

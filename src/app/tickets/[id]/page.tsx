@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { TicketStatus } from "@prisma/client";
 import { ArrowLeft, MessageSquare, Send, Settings2, Timeline } from "lucide-react";
 import { addCommentAction, deleteTicketAction, updateTicketAction } from "@/app/actions";
 import { DeleteTicketForm } from "@/app/tickets/[id]/delete-ticket-form";
 import { requireUser } from "@/lib/auth";
-import { canDeleteTicket, canManageQueue, canUpdateTicket } from "@/lib/permissions";
+import { canDeleteTicket, canEditAssignee, canUpdateTicket } from "@/lib/permissions";
 import { getPrisma } from "@/lib/prisma";
 import { priorityLabels, priorityStyles, statusLabels, statusStyles } from "@/lib/ticket-labels";
 
@@ -169,7 +170,7 @@ export default async function TicketDetailPage({
                   <select
                     name="assignedToId"
                     defaultValue={ticket.assignedToId ?? ""}
-                    disabled={!canManageQueue(user)}
+                    disabled={!canEditAssignee(user, ticket)}
                     className="mt-2 h-11 w-full rounded-md border border-zinc-300 px-3 text-sm disabled:bg-zinc-100"
                   >
                     <option value="">Sin asignar</option>
@@ -180,6 +181,9 @@ export default async function TicketDetailPage({
                     ))}
                   </select>
                 </label>
+                {ticket.status === TicketStatus.CLOSED ? (
+                  <p className="text-xs text-zinc-500">El responsable no puede cambiarse porque el ticket esta cerrado.</p>
+                ) : null}
                 <button type="submit" className="h-10 w-full rounded-md bg-zinc-900 px-4 text-sm font-semibold text-white">
                   Guardar cambios
                 </button>
