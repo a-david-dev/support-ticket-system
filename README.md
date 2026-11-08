@@ -39,6 +39,7 @@ Proyecto full-stack para el portafolio de Ariel David Hernandez Padilla. Conecta
 - Asignacion de tecnico
 - Dashboard con metricas
 - Filtros por busqueda, estado y prioridad
+- Los tickets cerrados se ocultan de la tabla por defecto; aparecen solo al filtrar por estado Cerrado
 - Paginacion
 - Modo claro / oscuro persistente
 - API REST protegida por sesion

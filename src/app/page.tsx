@@ -40,7 +40,8 @@ export default async function DashboardPage({
   const where = {
     AND: [
       visibleTicketWhere(user),
-      params.status ? { status: params.status } : {},
+      // Los tickets cerrados se ocultan por defecto; solo aparecen si se filtra por ese estado.
+      params.status ? { status: params.status } : { status: { not: TicketStatus.CLOSED } },
       params.priority ? { priority: params.priority } : {},
       params.q
         ? {
