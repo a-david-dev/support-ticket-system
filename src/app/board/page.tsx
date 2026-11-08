@@ -4,17 +4,21 @@ import { logoutAction } from "@/app/actions";
 import { NewTicketPanel } from "@/app/new-ticket-panel";
 import { BoardColumns } from "@/app/board/board-columns";
 import { requireUser } from "@/lib/auth";
-import { canUpdateTicket, visibleTicketWhere } from "@/lib/permissions";
+import { canManageQueue, canUpdateTicket, visibleTicketWhere } from "@/lib/permissions";
 import { getPrisma } from "@/lib/prisma";
 
 export default async function BoardPage() {
   const user = await requireUser();
   const prisma = getPrisma();
-  const tickets = await prisma.ticket.findMany({
-    where: visibleTicketWhere(user),
-    include: { createdBy: { select: { name: true } } },
-    orderBy: [{ priority: "desc" }, { updatedAt: "desc" }],
-  });
+  const canAssign = canManageQueue(user);
+  const [tickets, assignableUsers] = await Promise.all([
+    prisma.ticket.findMany({
+      where: visibleTicketWhere(user),
+      include: { createdBy: { select: { name: true } } },
+      orderBy: [{ priority: "desc" }, { updatedAt: "desc" }],
+    }),
+    canAssign ? prisma.user.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }) : Promise.resolve([]),
+  ]);
 
   return (
     <main className="min-h-screen">
@@ -32,7 +36,7 @@ export default async function BoardPage() {
               <LayoutDashboard size={16} />
               Tabla
             </Link>
-            <NewTicketPanel />
+            <NewTicketPanel assignableUsers={assignableUsers} canAssign={canAssign} />
             <form action={logoutAction}>
               <button type="submit" className="inline-flex h-10 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm font-medium hover:bg-zinc-50"><LogOut size={16} /> Salir</button>
             </form>

@@ -3,9 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { PlusCircle, X } from "lucide-react";
 import { createTicketAction } from "@/app/actions";
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
+import { Field, FieldLabel } from "@/components/ui/field";
 
-export function NewTicketPanel() {
+type AssignableUser = {
+  id: string;
+  name: string;
+};
+
+export function NewTicketPanel({ assignableUsers = [], canAssign = false }: { assignableUsers?: AssignableUser[]; canAssign?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [assigneeName, setAssigneeName] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -65,6 +73,24 @@ export function NewTicketPanel() {
                   <option value="HIGH">Alta</option>
                 </select>
               </div>
+              {canAssign ? (
+                <Field>
+                  <FieldLabel htmlFor="ticket-assignee">Responsable</FieldLabel>
+                  <Combobox
+                    items={assignableUsers.map((person) => person.name)}
+                    onValueChange={(name) => setAssigneeName(name as string | null)}
+                  >
+                    <ComboboxInput id="ticket-assignee" placeholder="Sin asignar" showClear />
+                    <ComboboxContent>
+                      <ComboboxEmpty>No se encontró ninguna persona.</ComboboxEmpty>
+                      <ComboboxList>
+                        {(name) => <ComboboxItem key={name} value={name}>{name}</ComboboxItem>}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                  <input type="hidden" name="assignedToId" value={assignableUsers.find((person) => person.name === assigneeName)?.id ?? ""} />
+                </Field>
+              ) : null}
               <button type="submit" className="h-11 w-full rounded-md bg-emerald-700 px-4 text-sm font-semibold text-white hover:bg-emerald-800">
                 Crear ticket
               </button>

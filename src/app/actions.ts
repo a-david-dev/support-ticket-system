@@ -68,16 +68,21 @@ export async function createTicketAction(formData: FormData) {
   const parsed = ticketSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) redirect("/?error=ticket");
 
+  const { assignedToId, ...ticketData } = parsed.data;
+  const canAssign = canManageQueue(user);
+  const assignee = canAssign && assignedToId ? await prisma.user.findUnique({ where: { id: assignedToId }, select: { id: true } }) : null;
+  if (canAssign && assignedToId && !assignee) redirect("/?error=ticket");
+
   const ticket = await prisma.ticket.create({
     data: {
-      ...parsed.data,
+      ...ticketData,
       createdById: user.id,
+      assignedToId: assignee?.id ?? null,
       activity: {
-        create: {
-          actorId: user.id,
-          type: "CREATED",
-          message: "Ticket creado por el usuario.",
-        },
+        create: [
+          { actorId: user.id, type: "CREATED" as const, message: "Ticket creado por el usuario." },
+          ...(assignee ? [{ actorId: user.id, type: "ASSIGNED" as const, message: "Responsable asignado al crear el ticket." }] : []),
+        ],
       },
     },
   });
@@ -150,6 +155,39 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
           actorId: user.id,
           type: "STATUS_CHANGED",
           message: `Estado actualizado a ${parsedStatus.data}.`,
+        },
+      },
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/board");
+  revalidatePath(`/tickets/${ticketId}`);
+}
+
+export async function updateTicketAssigneeAction(ticketId: string, assignedToId: string | null) {
+  const user = await requireUser();
+  if (!canManageQueue(user)) return;
+
+  const prisma = getPrisma();
+  const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+  if (!ticket) return;
+
+  const assignee = assignedToId ? await prisma.user.findUnique({ where: { id: assignedToId }, select: { id: true } }) : null;
+  if (assignedToId && !assignee) return;
+
+  const nextAssigneeId = assignee?.id ?? null;
+  if (ticket.assignedToId === nextAssigneeId) return;
+
+  await prisma.ticket.update({
+    where: { id: ticketId },
+    data: {
+      assignedToId: nextAssigneeId,
+      activity: {
+        create: {
+          actorId: user.id,
+          type: "ASSIGNED",
+          message: nextAssigneeId ? "Responsable actualizado." : "Ticket marcado como sin asignar.",
         },
       },
     },

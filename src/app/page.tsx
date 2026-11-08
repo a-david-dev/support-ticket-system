@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Priority, TicketStatus } from "@prisma/client";
-import { BarChart3, CheckCircle2, ChevronDown, Clock3, Columns3, LifeBuoy, LogOut, Search, ShieldCheck } from "lucide-react";
+import { BarChart3, CheckCircle2, ChevronDown, Clock3, Columns3, LifeBuoy, LogOut, Search } from "lucide-react";
 import { logoutAction } from "@/app/actions";
 import { NewTicketPanel } from "@/app/new-ticket-panel";
+import { AssigneeCombobox } from "@/app/assignee-combobox";
 import { requireUser } from "@/lib/auth";
 import { canManageQueue, visibleTicketWhere } from "@/lib/permissions";
 import { getPrisma } from "@/lib/prisma";
@@ -32,6 +33,7 @@ export default async function DashboardPage({
   const user = await requireUser();
   const prisma = getPrisma();
   const params = await searchParams;
+  const canAssign = canManageQueue(user);
   const page = Math.max(Number(params.page ?? 1), 1);
   const pageSize = 8;
 
@@ -52,7 +54,7 @@ export default async function DashboardPage({
     ],
   };
 
-  const [tickets, total, metrics, technicians] = await Promise.all([
+  const [tickets, total, metrics, assignableUsers] = await Promise.all([
     prisma.ticket.findMany({
       where,
       include: { createdBy: true, assignedTo: true },
@@ -62,10 +64,12 @@ export default async function DashboardPage({
     }),
     prisma.ticket.count({ where }),
     prisma.ticket.groupBy({ by: ["status"], _count: true, where: visibleTicketWhere(user) }),
-    prisma.user.findMany({
-      where: { role: { in: ["TECHNICIAN", "ADMIN"] } },
-      orderBy: { name: "asc" },
-    }),
+    canAssign
+      ? prisma.user.findMany({
+          orderBy: { name: "asc" },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve([]),
   ]);
 
   const metric = (status: TicketStatus) => metrics.find((item) => item.status === status)?._count ?? 0;
@@ -89,7 +93,7 @@ export default async function DashboardPage({
               <Columns3 size={16} />
               Tablero
             </Link>
-            <NewTicketPanel />
+            <NewTicketPanel assignableUsers={assignableUsers} canAssign={canAssign} />
             <form action={logoutAction}>
               <button type="submit" className="inline-flex h-10 items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 text-sm font-medium hover:bg-zinc-50">
                 <LogOut size={16} />
@@ -100,7 +104,7 @@ export default async function DashboardPage({
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="mx-auto max-w-7xl px-5 py-6">
         <section className="min-w-0 space-y-6">
           {params.error === "ticket" ? (
             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
@@ -165,7 +169,7 @@ export default async function DashboardPage({
                     <th className="px-4 py-3">Estado</th>
                     <th className="px-4 py-3">Prioridad</th>
                     <th className="px-4 py-3">Solicitante</th>
-                    <th className="px-4 py-3">Tecnico</th>
+                    <th className="px-4 py-3">Responsable</th>
                     <th className="px-4 py-3">Actualizado</th>
                   </tr>
                 </thead>
@@ -185,7 +189,9 @@ export default async function DashboardPage({
                         <Badge className={priorityStyles[ticket.priority]}>{priorityLabels[ticket.priority]}</Badge>
                       </td>
                       <td className="px-4 py-4 text-zinc-600">{ticket.createdBy.name}</td>
-                      <td className="px-4 py-4 text-zinc-600">{ticket.assignedTo?.name ?? "Sin asignar"}</td>
+                      <td className="px-4 py-4 text-zinc-600">
+                        {canAssign ? <AssigneeCombobox ticketId={ticket.id} initialAssigneeId={ticket.assignedToId} users={assignableUsers} /> : ticket.assignedTo?.name ?? "Sin asignar"}
+                      </td>
                       <td className="px-4 py-4 font-mono text-xs text-zinc-500">{ticket.updatedAt.toLocaleDateString("es-MX")}</td>
                     </tr>
                   ))}
@@ -209,27 +215,6 @@ export default async function DashboardPage({
           </div>
         </section>
 
-        <aside>
-          <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <ShieldCheck size={19} className="text-emerald-700" />
-              <h2 className="font-semibold">Equipo disponible</h2>
-            </div>
-            <div className="space-y-3">
-              {technicians.map((tech) => (
-                <div key={tech.id} className="flex items-center justify-between rounded-md bg-zinc-50 px-3 py-2 text-sm">
-                  <span>{tech.name}</span>
-                  <span className="text-xs text-zinc-500">{tech.role === "ADMIN" ? "Admin" : "Tecnico"}</span>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-xs leading-5 text-zinc-500">
-              {canManageQueue(user)
-                ? "Tu rol puede asignar tecnicos y actualizar la cola completa."
-                : "Como usuario puedes crear tickets, comentar y seguir tus solicitudes."}
-            </p>
-          </section>
-        </aside>
       </div>
     </main>
   );

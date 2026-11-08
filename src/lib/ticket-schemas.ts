@@ -6,6 +6,7 @@ export const ticketSchema = z.object({
   description: z.string().trim().min(5),
   category: z.string().trim().min(2),
   priority: z.nativeEnum(Priority),
+  assignedToId: z.preprocess((value) => (value === "" ? undefined : value), z.string().cuid().optional()),
 });
 
 export const updateTicketSchema = ticketSchema.extend({
