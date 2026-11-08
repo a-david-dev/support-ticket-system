@@ -15,7 +15,7 @@ export function AssigneeCombobox({ ticketId, initialAssigneeId, users }: { ticke
   const [assigneeName, setAssigneeName] = useState<string | null>(users.find((person) => person.id === initialAssigneeId)?.name ?? null);
 
   return (
-    <div className="relative min-w-36">
+    <div className="relative w-36">
       <Combobox
         items={users.map((person) => person.name)}
         value={assigneeName}

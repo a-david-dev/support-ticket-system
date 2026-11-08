@@ -54,7 +54,20 @@
   --surface-muted: #202b26;
   --border: #2f3d36;
   --border-strong: #405149;
-  --muted: #c4cec8;
+  --card: #18211d;
+  --card-foreground: #edf4ef;
+  --popover: #18211d;
+  --popover-foreground: #edf4ef;
+  --primary: #34d399;
+  --primary-foreground: #0f1411;
+  --secondary: #202b26;
+  --secondary-foreground: #edf4ef;
+  --muted: #202b26;
+  --muted-foreground: #9ba8a1;
+  --accent: #24322c;
+  --accent-foreground: #edf4ef;
+  --input: #405149;
+  --ring: #34d399;
   --muted-soft: #9ba8a1;
   --strong: #f8faf9;
   --brand: #34d399;
@@ -173,7 +186,7 @@ textarea::placeholder {
 :root[data-theme="dark"] .text-zinc-600,
 :root[data-theme="dark"] .text-zinc-700,
 :root[data-theme="dark"] .text-zinc-500 {
-  color: var(--muted);
+  color: var(--muted-soft);
 }
 
 :root[data-theme="dark"] .text-zinc-400 {
