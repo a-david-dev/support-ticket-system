@@ -26,7 +26,7 @@ export function AssigneeCombobox({ ticketId, initialAssigneeId, users }: { ticke
           startTransition(async () => updateTicketAssigneeAction(ticketId, nextAssignee?.id ?? null));
         }}
       >
-        <ComboboxInput aria-label="Responsable" placeholder="Sin asignar" showClear className="h-8 text-xs" />
+        <ComboboxInput aria-label="Responsable" placeholder="Sin asignar" showClear className="h-8 border-transparent bg-transparent text-xs shadow-none hover:bg-muted/50" />
         <ComboboxContent>
           <ComboboxEmpty>No se encontró ninguna persona.</ComboboxEmpty>
           <ComboboxList>

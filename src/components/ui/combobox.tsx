@@ -41,7 +41,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
     <ComboboxPrimitive.Clear
       data-slot="combobox-clear"
       render={<InputGroupButton variant="ghost" size="icon-xs" />}
-      className={cn(className)}
+      className={cn("rounded-none border-0 bg-transparent p-0 shadow-none hover:bg-transparent hover:text-foreground focus-visible:ring-0", className)}
       {...props}
     >
       <XIcon className="pointer-events-none" />
